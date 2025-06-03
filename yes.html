@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anh yêu em!</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #ffe4e1; /* Hồng nhạt chủ đạo (mistyrose) */
+            font-family: 'Comic Sans MS', cursive, sans-serif; /* Font vui vẻ hơn */
+            overflow: hidden; /* Ngăn cuộn trang khi trái tim bay ra ngoài */
+            margin: 0;
+            position: relative;
+        }
+        .love-text {
+            color: #ff1493; /* Hồng đậm hơn */
+            font-size: 5em;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+            animation: popIn 1s ease-out;
+            z-index: 10; /* Đảm bảo chữ nằm trên trái tim */
+        }
+
+        /* Hiệu ứng trái tim rơi */
+        .heart {
+            position: absolute;
+            background-color: #ff69b4; /* Hồng */
+            width: 25px;
+            height: 25px;
+            transform: rotate(-45deg);
+            opacity: 0;
+            z-index: 1;
+            animation: fallHeart 8s linear infinite; /* Sử dụng lại animation rơi */
+        }
+        .heart::before,
+        .heart::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background-color: #ff69b4;
+        }
+        .heart::before {
+            top: -12.5px;
+            left: 0;
+        }
+        .heart::after {
+            top: 0;
+            left: 12.5px;
+        }
+
+        /* Keyframes */
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes fallHeart {
+            0% { top: -10%; opacity: 0; transform: translateX(0) rotate(-45deg); }
+            10% { opacity: 0.8; }
+            100% { top: 110%; opacity: 0; transform: translateX(var(--fall-x-offset)) rotate(-45deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="love-text">Anh yêu em!</div>
+
+    <script>
+        function createFallingHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            document.body.appendChild(heart);
+
+            const size = Math.random() * 20 + 20; // Kích thước từ 20px đến 40px
+            heart.style.width = size + 'px';
+            heart.style.height = size + 'px';
+            heart.style.left = Math.random() * 100 + 'vw'; // Vị trí ngẫu nhiên theo chiều ngang
+
+            // Điều chỉnh kích thước cho pseudo-elements
+            heart.style.setProperty('--heart-size', `${size / 2}px`);
+            heart.style.setProperty('--heart-top-before', `${-size / 2}px`);
+heart.style.setProperty('--heart-left-after', `${size / 2}px`);
+
+            // Thiết lập giá trị cho biến CSS để animation biết điểm dừng ngẫu nhiên
+            const xOffset = (Math.random() - 0.5) * 200; // Ngẫu nhiên dịch chuyển trái/phải khi rơi
+            heart.style.setProperty('--fall-x-offset', `${xOffset}px`);
+
+            const duration = Math.random() * 5 + 5; // Thời gian rơi từ 5s đến 10s
+            heart.style.animationDuration = duration + 's';
+            heart.style.animationDelay = Math.random() * 3 + 's'; // Delay ngẫu nhiên
+
+            heart.addEventListener('animationend', () => {
+                heart.remove();
+            });
+        }
+
+        // Tạo trái tim rơi liên tục
+        setInterval(createFallingHeart, 300); // Mỗi 300ms tạo một trái tim
+    </script>
+</body>
+</html>

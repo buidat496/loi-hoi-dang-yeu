@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lời hỏi đáng yêu</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #ffe4e1; /* Hồng nhạt */
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            overflow: hidden; /* Ngăn cuộn trang khi trái tim bay ra ngoài */
+            position: relative; /* Để trái tim có vị trí tương đối */
+        }
+        .dialog-box {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+            z-index: 10; /* Đảm bảo hộp thoại nằm trên trái tim */
+            position: relative;
+        }
+        .dialog-box h1 {
+            color: #ff69b4; /* Hồng đậm */
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .buttons {
+            display: flex; /* Sử dụng flexbox để căn chỉnh các nút */
+            gap: 20px; /* Khoảng cách giữa các nút */
+            justify-content: center;
+            position: relative; /* Quan trọng: để nút 'Không' di chuyển tuyệt đối trong phạm vi này */
+            min-height: 60px; /* Đặt chiều cao tối thiểu để nút 'Không' có không gian di chuyển */
+            align-items: center; /* Căn giữa theo chiều dọc */
+        }
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s, left 0.2s, top 0.2s; /* Thêm transition cho left, top */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            
+            /* Đảm bảo hai nút cân bằng kích thước */
+            width: 120px; /* Đặt chiều rộng cố định */
+            text-align: center;
+            box-sizing: border-box; /* Đảm bảo padding không làm tăng tổng chiều rộng */
+            position: relative; /* Vị trí tương đối ban đầu để có thể tính toán offset khi chuyển sang absolute */
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        #yesBtn {
+            background-color: #ff69b4; /* Hồng */
+            color: white;
+            z-index: 5; /* Đảm bảo nút có luôn nằm trên (nếu nút không di chuyển đè lên) */
+        }
+        #yesBtn:hover {
+            background-color: #e65a9e;
+        }
+        #noBtn {
+            background-color: #ffcccb; /* Hồng nhạt hơn */
+            color: #ff69b4;
+white-space: nowrap; /* Ngăn chữ bị ngắt dòng */
+            z-index: 6; /* Đảm bảo nút không nằm trên nút có khi di chuyển */
+        }
+        #noBtn:hover {
+            background-color: #ffb7b7;
+        }
+        /* CSS khi nút "Không" di chuyển */
+        #noBtn.moving {
+            position: absolute; /* Khi di chuyển, chuyển sang vị trí tuyệt đối */
+            margin: 0; /* Loại bỏ margin của flex item */
+        }
+
+        /* Hiệu ứng trái tim rơi */
+        .heart {
+            position: absolute;
+            background-color: #ff69b4; /* Hồng */
+            width: 25px;
+            height: 25px;
+            transform: rotate(-45deg);
+            opacity: 0;
+            z-index: 1; /* Đảm bảo trái tim nằm dưới hộp thoại */
+            animation: fallHeart 8s linear infinite;
+        }
+        .heart::before,
+        .heart::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background-color: #ff69b4;
+        }
+        .heart::before {
+            top: -12.5px;
+            left: 0;
+        }
+        .heart::after {
+            top: 0;
+            left: 12.5px;
+        }
+
+        /* Keyframes */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fallHeart {
+            0% { top: -10%; opacity: 0; transform: translateX(0) rotate(-45deg); }
+            10% { opacity: 0.8; }
+            100% { top: 110%; opacity: 0; transform: translateX(var(--fall-x-offset)) rotate(-45deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="dialog-box">
+        <h1>Em có yêu anh không?</h1>
+        <div class="buttons">
+            <button class="btn" id="yesBtn" onclick="location.href='yes.html'">Có</button>
+            <button class="btn" id="noBtn">Không</button>
+        </div>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('noBtn');
+        const buttonsContainer = document.querySelector('.buttons'); // Vùng chứa hai nút
+        let moveTimeout; // Biến để lưu trữ timeout di chuyển
+
+        // Hàm lấy vị trí ngẫu nhiên trong vùng chứa buttonsContainer
+        function getRandomPosition() {
+            const containerWidth = buttonsContainer.offsetWidth;
+            const containerHeight = buttonsContainer.offsetHeight; 
+
+            const btnWidth = noBtn.offsetWidth;
+            const btnHeight = noBtn.offsetHeight;
+
+            // Đảm bảo nút không bị tràn ra ngoài container
+            const maxX = containerWidth - btnWidth;
+            const maxY = containerHeight - btnHeight;
+
+            const newX = Math.random() * maxX;
+            const newY = Math.random() * maxY;
+
+            return { x: newX, y: newY };
+        }
+
+        function moveNoButton() {
+// Nếu nút "Không" chưa ở chế độ di chuyển (chưa có class 'moving')
+            if (!noBtn.classList.contains('moving')) {
+                // Lấy vị trí hiện tại của nút so với phần tử cha (.buttons)
+                const currentRect = noBtn.getBoundingClientRect();
+                const parentRect = buttonsContainer.getBoundingClientRect();
+
+                // Đặt vị trí tuyệt đối dựa trên vị trí hiện tại để không bị giật
+                noBtn.style.position = 'absolute';
+                noBtn.style.left = (currentRect.left - parentRect.left) + 'px';
+                noBtn.style.top = (currentRect.top - parentRect.top) + 'px';
+                noBtn.style.margin = '0'; // Loại bỏ margin của flex item để vị trí tuyệt đối không bị ảnh hưởng
+
+                noBtn.classList.add('moving'); // Thêm class 'moving' để kích hoạt CSS position: absolute
+            }
+
+            const { x, y } = getRandomPosition();
+
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+
+            clearTimeout(moveTimeout); // Xóa timeout cũ nếu có
+
+            moveTimeout = setTimeout(() => {
+                noBtn.textContent = 'Có';
+                noBtn.style.backgroundColor = '#ff69b4';
+                noBtn.style.color = 'white';
+                noBtn.onclick = () => location.href='yes.html'; // Đặt lại sự kiện click cho nút "Có"
+
+                // Quan trọng: Đặt lại vị trí của nút về bình thường để nó trở lại luồng văn bản
+                noBtn.classList.remove('moving'); // Xóa class 'moving'
+                noBtn.style.position = 'static'; // Đặt lại vị trí tĩnh (mặc định)
+                noBtn.style.left = ''; // Xóa thuộc tính left/top
+                noBtn.style.top = '';
+                noBtn.style.transform = ''; // Xóa mọi transform còn lại
+                noBtn.style.margin = ''; // Khôi phục lại margin mặc định của flex item
+                // Sau khi về static, flexbox sẽ tự động căn chỉnh lại
+            }, 5000); // 5 giây sau sẽ đổi thành "Có"
+        }
+
+        noBtn.addEventListener('mouseenter', () => {
+            if (noBtn.textContent === 'Không') {
+                moveNoButton();
+            }
+        });
+
+        // Xử lý khi click vào nút "Không" (trước khi nó chuyển thành "Có")
+        noBtn.addEventListener('click', (event) => {
+            if (noBtn.textContent === 'Không') {
+                event.preventDefault(); // Ngăn hành vi mặc định của nút (nếu có)
+                moveNoButton(); // Kích hoạt di chuyển ngay lập tức
+            }
+            // Nếu đã thành "Có" (sau 5s), sự kiện onclick trên HTML sẽ xử lý chuyển trang
+        });
+
+        // --- Hiệu ứng trái tim rơi trên trang chính ---
+        function createFallingHeart() {
+const heart = document.createElement('div');
+            heart.classList.add('heart');
+            document.body.appendChild(heart);
+
+            const size = Math.random() * 20 + 20; // Kích thước từ 20px đến 40px
+            heart.style.width = size + 'px';
+            heart.style.height = size + 'px';
+            heart.style.left = Math.random() * 100 + 'vw'; // Vị trí ngẫu nhiên theo chiều ngang
+
+            // Điều chỉnh kích thước cho pseudo-elements
+            heart.style.setProperty('--heart-size', `${size / 2}px`);
+            heart.style.setProperty('--heart-top-before', `${-size / 2}px`);
+            heart.style.setProperty('--heart-left-after', `${size / 2}px`);
+
+            // Thiết lập giá trị cho biến CSS để animation biết điểm dừng ngẫu nhiên
+            const xOffset = (Math.random() - 0.5) * 200; // Ngẫu nhiên dịch chuyển trái/phải khi rơi
+            heart.style.setProperty('--fall-x-offset', `${xOffset}px`);
+
+            const duration = Math.random() * 5 + 5; // Thời gian rơi từ 5s đến 10s
+            heart.style.animationDuration = duration + 's';
+            heart.style.animationDelay = Math.random() * 3 + 's'; // Delay ngẫu nhiên
+
+            heart.addEventListener('animationend', () => {
+                heart.remove();
+            });
+        }
+
+        // Tạo trái tim rơi liên tục
+        setInterval(createFallingHeart, 300); // Mỗi 300ms tạo một trái tim
+    </script>
+</body>
+</html>
